@@ -1,20 +1,22 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+//import TestSupabaseConnection from './components/TestSupabaseConnection';
+import FacebookLoginScreen from './screens/FacebookLoginScreen';
+import FeedScreen from './screens/FeedScreen';
 
-export default function App() {
+const Stack = createStackNavigator();
+
+const App: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!!!!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Feed">
+        <Stack.Screen name="Feed" component={FeedScreen} />
+        <Stack.Screen name="FacebookLogin" component={FacebookLoginScreen} />
+        <Stack.Screen name='FeedScreen' component={FeedScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
