@@ -1,0 +1,6 @@
+POST http://localhost:3000/exchange-token
+Content-Type: application/json
+
+{
+  "shortLivedToken": "EAAEe1jv650QBOxlsb5smZBHtRuZCMR3Ou3teLJr82HHw8nGCiZAMhiWuxmkrCZBOpnCj19p3SeoskWM8HhygCZBG4TUn8hk64ND35MXXYz3kI17qzgL3NbDhTTUCrKytVXBF4PAhhHdOMQVlO8egZB7sZAUlK1GgRbf2ZCJBSZCv73eEZApJ2nS8IJG666I4IF2nZB9QXhCJXO3BitMVN3iHjXx"
+}
