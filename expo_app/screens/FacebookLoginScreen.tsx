@@ -1,23 +1,53 @@
 import React from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import axios from 'axios';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-const FacebookLoginScreen: React.FC = () => {
-  const [result, setResult] = React.useState<any>(null);
+type RootStackParamList = {
+  Feed: undefined;
+};
+
+type FacebookLoginScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Feed'
+>;
+
+type Props = {
+  navigation: FacebookLoginScreenNavigationProp;
+};
+
+const FacebookLoginScreen: React.FC<Props> = ({ navigation }) => {
+  const [result] = React.useState<any>(null);
   const [error, setError] = React.useState<string | null>(null);
+
+  const API_URL = 'https://miamiaapp-ronjakovero-ronjakoveros-projects.vercel.app';
 
   const handleLogin = async () => {
     try {
       console.log('Initiating login...');
-      const response = await axios.get('http://localhost:3000/auth/facebook', {
+      const response = await axios.get(`${API_URL}/auth/facebook`, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      
+
       console.log('Login URL received:', response.data.url);
 
-      window.location.href = response.data.url;
+      const redirectUrl = Linking.createURL('exp://');
+
+      const authUrl = `${response.data.url}&redirectUri=${encodeURIComponent(redirectUrl)}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+
+      if (result.type === 'success') {
+        console.log('Login successful')
+        navigation.replace('Feed');
+      } else {
+        console.log('Login not successful')
+      }
+    
     } catch (err: any) {
       console.error('Error initiating login:', err.message);
       setError('Failed to initiate login');

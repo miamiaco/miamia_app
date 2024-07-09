@@ -10,10 +10,9 @@ const Stack = createStackNavigator();
 const App: React.FC = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Feed">
+      <Stack.Navigator initialRouteName="FacebookLogin">
         <Stack.Screen name="Feed" component={FeedScreen} />
         <Stack.Screen name="FacebookLogin" component={FacebookLoginScreen} />
-        <Stack.Screen name='FeedScreen' component={FeedScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

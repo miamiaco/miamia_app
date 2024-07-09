@@ -21,47 +21,58 @@ type Media = {
 const MediaFeed: React.FC = () => {
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 20;
 
   useEffect(() => {
-    const fetchMedia = async () => {
-      try {
-        const response = await axios.get<Media[]>('http://localhost:3000/media');
-        const mediaData = response.data;
-
-        console.log('Fetched media data:', mediaData);
-
-        const validMediaItems = mediaData.filter(media => media.media_url && media.id);
-
-        const mediaItemsWithDimensions = await Promise.all(
-          validMediaItems.map(async (media) => {
-            return new Promise<Media>((resolve) => {
-              Image.getSize(
-                media.media_url!,
-                (width, height) => {
-                  resolve({ ...media, width, height });
-                  console.log('media size: width, height', width, height)
-                },
-                (error) => {
-                  console.error('Error fetching image size:', error);
-                  resolve(media);
-                }
-              );
-            });
-          })
-        );
-
-        console.log('Valid media items with dimensions:', mediaItemsWithDimensions);
-
-        setMediaItems(mediaItemsWithDimensions);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching media:', error);
-        setLoading(false);
-      }
-    };
-
     fetchMedia();
-  }, []);
+  }, [page]);
+
+  const API_URL = 'https://miamiaapp-ronjakovero-ronjakoveros-projects.vercel.app';
+
+  const fetchMedia = async () => {
+    try {
+      const offset = (page - 1) * limit;
+      const response = await axios.get<Media[]>(`${API_URL}/media?limit=${limit}&offset=${offset}`);
+      const mediaData = response.data;
+
+      const validMediaItems = mediaData.filter(media => media.media_url && media.id);
+
+      const mediaItemsWithDimensions = await Promise.all(
+        validMediaItems.map(async (media) => {
+          return new Promise<Media>((resolve) => {
+            Image.getSize(
+              media.media_url!,
+              (width, height) => {
+                resolve({ ...media, width, height });
+
+              },
+              (error) => {
+                console.error('Error fetching image size:', error);
+                resolve(media);
+              }
+            );
+          });
+        })
+      );
+
+      
+
+      setMediaItems(prevItems => [...prevItems, ...mediaItemsWithDimensions]);
+      setHasMore(mediaItemsWithDimensions.length === limit);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching media:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setPage(prevPage => prevPage + 1);
+    }
+  };
 
   const renderItem = ({ item }: { item: Media }) => {
     if (!item.media_url || !item.width || !item.height) {
@@ -70,7 +81,7 @@ const MediaFeed: React.FC = () => {
     }
 
     const aspectRatio = item.width / item.height;
-    const containerWidth = Dimensions.get('window').width / 2 - 28; 
+    const containerWidth = (Dimensions.get('window').width / 2) - 16;
     const height = containerWidth / aspectRatio;
 
     return (
@@ -87,7 +98,7 @@ const MediaFeed: React.FC = () => {
     );
   };
 
-  if (loading) {
+  if (loading && mediaItems.length === 0) {
     return (
       <View style={styles.container}>
         <Text>Loading...</Text>
@@ -95,7 +106,7 @@ const MediaFeed: React.FC = () => {
     );
   }
 
-  if (mediaItems.length === 0) {
+  if (!loading && mediaItems.length === 0) {
     return (
       <View style={styles.container}>
         <Text>No media to display</Text>
@@ -108,14 +119,17 @@ const MediaFeed: React.FC = () => {
       <MasonryList
         style={{ alignSelf: 'stretch' }}
         contentContainerStyle={{
-          paddingHorizontal: 24,
+          paddingHorizontal: 8,
           alignSelf: 'stretch',
         }}
         numColumns={2}
         data={mediaItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
       />
+      {loading && <Text style={styles.loadingText}>Loading more...</Text>}
     </View>
   );
 };
@@ -131,6 +145,10 @@ const styles = StyleSheet.create({
   caption: {
     padding: 5,
     textAlign: 'center',
+  },
+  loadingText: {
+    textAlign: 'center',
+    padding: 10,
   },
 });
 

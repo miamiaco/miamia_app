@@ -25,6 +25,7 @@ let longLivedToken = '';
 
 app.get('/auth/facebook', (req, res) => {
   const oauthUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=email,pages_show_list,instagram_basic,pages_read_engagement,business_management&display=page&extras={"setup":{"channel":"IG_API_ONBOARDING"}}`;
+  console.log('Generated OAuth URL:', oauthUrl);
   res.json({ url: oauthUrl });
 });
 
@@ -51,17 +52,16 @@ app.get('/auth/facebook/callback', async (req, res) => {
     console.log('Generated long-lived token:', longLivedToken);
     console.log('Token Expiration Time:', expirationTime);
 
-    res.json({ longLivedToken, expirationTime });
+    res.redirect(`exp://?success=true`);
   } catch (error) {
-    console.error('Error exchanging token:', error.message);
-    res.status(500).json({ error: 'Failed to exchange token' });
+    res.redirect(`exp://?success=false&error=${encodeURIComponent(error.message)}`);
   }
 });
 
 app.get('/media', async (req, res) => {
   const accessToken = longLivedToken;
   const userUrl = `https://graph.facebook.com/v20.0/me/accounts?access_token=${accessToken}`;
-  const { limit = 10, offset = 0 } = req.query;
+  const { limit = 20, offset = 0 } = req.query;
 
   try {
     const userResponse = await axios.get(userUrl);
@@ -127,3 +127,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+module.exports = app;
