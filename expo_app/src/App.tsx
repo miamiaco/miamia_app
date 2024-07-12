@@ -2,8 +2,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 //import TestSupabaseConnection from './components/TestSupabaseConnection';
-import FacebookLoginScreen from './screens/FacebookLoginScreen';
-import FeedScreen from './screens/FeedScreen';
+import FacebookLoginScreen from './screens/FacebookLoginScreen/FacebookLoginScreen';
+import FeedScreen from './screens/FeedScreen/FeedScreen';
+// import SearchScreen from './screens/SearchScreen/SearchScreen';
 
 const Stack = createStackNavigator();
 
