@@ -42,17 +42,32 @@ const MediaFeed: React.FC = () => {
       const mediaItemsWithDimensions = await Promise.all(
         validMediaItems.map(async (media) => {
           return new Promise<Media>((resolve) => {
-            Image.getSize(
-              media.media_url!,
-              (width, height) => {
-                resolve({ ...media, width, height });
-
-              },
-              (error) => {
-                console.error('Error fetching image size:', error);
-                resolve(media);
-              }
-            );
+            if (media.media_product_type === "REELS" || media.media_type === "VIDEO") {
+              
+              Image.getSize(
+                media.thumbnail_url!,
+                (width, height) => {
+                  resolve({ ...media, width, height });
+  
+                },
+                (error) => {
+                  console.error('Error fetching video size:', error);
+                  resolve(media);
+                }
+              );
+            } else {
+              Image.getSize(
+                media.media_url!,
+                (width, height) => {
+                  resolve({ ...media, width, height });
+  
+                },
+                (error) => {
+                  console.error('Error fetching image size:', error);
+                  resolve(media);
+                }
+              );
+            }
           });
         })
       );
@@ -77,8 +92,12 @@ const MediaFeed: React.FC = () => {
   const renderItem = ({ item }: { item: Media }) => {
     if (!item.media_url || !item.width || !item.height) {
       console.warn('Invalid media item:', item);
+      console.log(item.width, item.media_product_type)
+      console.log(item.height, item.media_product_type)
       return null;
     }
+    console.log(item.width, item.media_product_type)
+    console.log(item.height, item.media_product_type)
 
     const aspectRatio = item.width / item.height;
     const containerWidth = (Dimensions.get('window').width / 2) - 16;
