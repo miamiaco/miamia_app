@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
 import MasonryList from '@react-native-seoul/masonry-list';
+import Header from '../../components/Header/Header';
 import axios from 'axios';
 
 type Media = {
@@ -103,7 +104,9 @@ const MediaFeed: React.FC = () => {
     const containerWidth = (Dimensions.get('window').width / 2) - 16;
     const height = containerWidth / aspectRatio;
 
+
     return (
+  
       <View style={styles.itemContainer}>
         <Image
           source={{ uri: item.media_url }}
@@ -136,7 +139,7 @@ const MediaFeed: React.FC = () => {
   return (
     <View style={styles.container}>
       <MasonryList
-        style={{ alignSelf: 'stretch' }}
+        style={{ alignSelf: 'stretch', marginTop: 60 }}
         contentContainerStyle={{
           paddingHorizontal: 8,
           alignSelf: 'stretch',
