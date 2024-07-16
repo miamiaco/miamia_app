@@ -10,13 +10,17 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     marginTop: 0,
-    marginRight: 3,
-    marginBottom: 10,
-    marginLeft: 3,
+    marginRight: 4,
+    marginBottom: 15,
+    marginLeft: 4,
+  },
+  image: {
+    borderRadius: 15,
   },
   caption: {
     paddingTop: 5,
-    paddingLeft: 3,
+    paddingLeft: 4,
+    paddingRight: 4,
     textAlign: 'left',
     fontFamily: fonts.semiBold,
     color: colors.semiBlue,

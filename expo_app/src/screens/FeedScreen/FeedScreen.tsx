@@ -19,6 +19,13 @@ type Media = {
   instagramBusinessAccountId: string | null;
 };
 
+const getFirstParagraph = (caption: string | null): string | null => {
+  if (!caption) return null;
+  const paragraphs = caption.split('\n')[0];
+  return paragraphs.charAt(0).toUpperCase() + paragraphs.slice(1).toLowerCase();
+
+};
+
 const MediaFeed: React.FC = () => {
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,16 +108,17 @@ const MediaFeed: React.FC = () => {
     const aspectRatio = item.width / item.height;
     const containerWidth = (Dimensions.get('window').width / 2) - 16;
     const height = containerWidth / aspectRatio;
+    console.log(item.caption)
 
     return (
       <View style={styles.itemContainer}>
         <Image
           source={{ uri: item.media_url }}
-          style={{ width: containerWidth, height }}
+          style={[{ width: containerWidth, height }, styles.image]}
           resizeMode="cover"
         />
         {item.caption ? (
-          <Text style={styles.caption}>{item.caption}</Text>
+          <Text style={styles.caption}>{getFirstParagraph(item.caption)}</Text>
         ) : null}
       </View>
     );
@@ -135,7 +143,7 @@ const MediaFeed: React.FC = () => {
   return (
     <View style={styles.container}>
       <MasonryList
-        style={{ alignSelf: 'stretch', marginTop: 110 }}
+        style={{ alignSelf: 'stretch', marginTop: 120 }}
         contentContainerStyle={{
           paddingHorizontal: 8,
           alignSelf: 'stretch',
