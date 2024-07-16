@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Text, Dimensions, Image } from 'react-native';
 import MasonryList from '@react-native-seoul/masonry-list';
 import axios from 'axios';
+import styles from './FeedScreen.styles';
 
 type Media = {
   id: string;
@@ -16,6 +17,13 @@ type Media = {
   timestamp: string | null;
   pageId: string;
   instagramBusinessAccountId: string | null;
+};
+
+const getFirstParagraph = (caption: string | null): string | null => {
+  if (!caption) return null;
+  const paragraphs = caption.split('\n')[0];
+  return paragraphs.charAt(0).toUpperCase() + paragraphs.slice(1).toLowerCase();
+
 };
 
 const MediaFeed: React.FC = () => {
@@ -42,22 +50,35 @@ const MediaFeed: React.FC = () => {
       const mediaItemsWithDimensions = await Promise.all(
         validMediaItems.map(async (media) => {
           return new Promise<Media>((resolve) => {
-            Image.getSize(
-              media.media_url!,
-              (width, height) => {
-                resolve({ ...media, width, height });
-
-              },
-              (error) => {
-                console.error('Error fetching image size:', error);
-                resolve(media);
-              }
-            );
+            if (media.media_product_type === "REELS" || media.media_type === "VIDEO") {
+              
+              Image.getSize(
+                media.thumbnail_url!,
+                (width, height) => {
+                  resolve({ ...media, width, height });
+  
+                },
+                (error) => {
+                  console.error('Error fetching video size:', error);
+                  resolve(media);
+                }
+              );
+            } else {
+              Image.getSize(
+                media.media_url!,
+                (width, height) => {
+                  resolve({ ...media, width, height });
+  
+                },
+                (error) => {
+                  console.error('Error fetching image size:', error);
+                  resolve(media);
+                }
+              );
+            }
           });
         })
       );
-
-      
 
       setMediaItems(prevItems => [...prevItems, ...mediaItemsWithDimensions]);
       setHasMore(mediaItemsWithDimensions.length === limit);
@@ -77,22 +98,27 @@ const MediaFeed: React.FC = () => {
   const renderItem = ({ item }: { item: Media }) => {
     if (!item.media_url || !item.width || !item.height) {
       console.warn('Invalid media item:', item);
+      console.log(item.width, item.media_product_type);
+      console.log(item.height, item.media_product_type);
       return null;
     }
+    console.log(item.width, item.media_product_type);
+    console.log(item.height, item.media_product_type);
 
     const aspectRatio = item.width / item.height;
     const containerWidth = (Dimensions.get('window').width / 2) - 16;
     const height = containerWidth / aspectRatio;
+    console.log(item.caption)
 
     return (
       <View style={styles.itemContainer}>
         <Image
           source={{ uri: item.media_url }}
-          style={{ width: containerWidth, height }}
+          style={[{ width: containerWidth, height }, styles.image]}
           resizeMode="cover"
         />
         {item.caption ? (
-          <Text style={styles.caption}>{item.caption}</Text>
+          <Text style={styles.caption}>{getFirstParagraph(item.caption)}</Text>
         ) : null}
       </View>
     );
@@ -117,7 +143,7 @@ const MediaFeed: React.FC = () => {
   return (
     <View style={styles.container}>
       <MasonryList
-        style={{ alignSelf: 'stretch' }}
+        style={{ alignSelf: 'stretch', marginTop: 120 }}
         contentContainerStyle={{
           paddingHorizontal: 8,
           alignSelf: 'stretch',
@@ -133,23 +159,5 @@ const MediaFeed: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-  itemContainer: {
-    marginBottom: 10,
-  },
-  caption: {
-    padding: 5,
-    textAlign: 'center',
-  },
-  loadingText: {
-    textAlign: 'center',
-    padding: 10,
-  },
-});
 
 export default MediaFeed;
