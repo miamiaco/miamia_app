@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 120,
+    height: 110,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent', 

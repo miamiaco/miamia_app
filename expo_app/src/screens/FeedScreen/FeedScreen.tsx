@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Text, Dimensions, Image } from 'react-native';
 import MasonryList from '@react-native-seoul/masonry-list';
-import Header from '../../components/Header/Header';
 import axios from 'axios';
+import styles from './FeedScreen.styles';
 
 type Media = {
   id: string;
@@ -73,8 +73,6 @@ const MediaFeed: React.FC = () => {
         })
       );
 
-      
-
       setMediaItems(prevItems => [...prevItems, ...mediaItemsWithDimensions]);
       setHasMore(mediaItemsWithDimensions.length === limit);
       setLoading(false);
@@ -93,20 +91,18 @@ const MediaFeed: React.FC = () => {
   const renderItem = ({ item }: { item: Media }) => {
     if (!item.media_url || !item.width || !item.height) {
       console.warn('Invalid media item:', item);
-      console.log(item.width, item.media_product_type)
-      console.log(item.height, item.media_product_type)
+      console.log(item.width, item.media_product_type);
+      console.log(item.height, item.media_product_type);
       return null;
     }
-    console.log(item.width, item.media_product_type)
-    console.log(item.height, item.media_product_type)
+    console.log(item.width, item.media_product_type);
+    console.log(item.height, item.media_product_type);
 
     const aspectRatio = item.width / item.height;
     const containerWidth = (Dimensions.get('window').width / 2) - 16;
     const height = containerWidth / aspectRatio;
 
-
     return (
-  
       <View style={styles.itemContainer}>
         <Image
           source={{ uri: item.media_url }}
@@ -139,7 +135,7 @@ const MediaFeed: React.FC = () => {
   return (
     <View style={styles.container}>
       <MasonryList
-        style={{ alignSelf: 'stretch', marginTop: 60 }}
+        style={{ alignSelf: 'stretch', marginTop: 110 }}
         contentContainerStyle={{
           paddingHorizontal: 8,
           alignSelf: 'stretch',
@@ -155,23 +151,5 @@ const MediaFeed: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-  itemContainer: {
-    marginBottom: 10,
-  },
-  caption: {
-    padding: 5,
-    textAlign: 'center',
-  },
-  loadingText: {
-    textAlign: 'center',
-    padding: 10,
-  },
-});
 
 export default MediaFeed;
