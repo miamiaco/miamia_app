@@ -25,6 +25,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semiBold,
     color: colors.semiBlue,
   },
+  username: {
+    textAlign: 'left',
+    fontFamily: fonts.medium,
+    color: colors.semiBlue,
+  },
   loadingText: {
     textAlign: 'center',
     padding: 10,
