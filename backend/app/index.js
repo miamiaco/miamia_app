@@ -3,12 +3,20 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { PrismaClient } = require('@prisma/client');
+const morgan = require('morgan');
+
+
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error']
+});
 
 dotenv.config();
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(morgan('dev'));
 
 const corsOptions = {
   origin: 'http://localhost:8081',
@@ -79,7 +87,7 @@ app.get('/media', async (req, res) => {
           const instagramBusinessAccountId = instagramResponse.data.instagram_business_account?.id;
 
           if (instagramBusinessAccountId) {
-            const mediaUrl = `https://graph.facebook.com/v20.0/${instagramBusinessAccountId}/media?fields=caption,media_url,media_product_type,media_type,permalink,timestamp&access_token=${accessToken}&limit=${limit}&offset=${offset}`;
+            const mediaUrl = `https://graph.facebook.com/v20.0/${instagramBusinessAccountId}/media?fields=caption,media_url,media_product_type,media_type,permalink,username,timestamp&access_token=${accessToken}&limit=${limit}&offset=${offset}`;
             const mediaResponse = await axios.get(mediaUrl);
             const mediaData = mediaResponse.data.data;
 
@@ -99,6 +107,7 @@ app.get('/media', async (req, res) => {
                 media_product_type: media.media_product_type || null,
                 media_type: media.media_type || null,
                 permalink: media.permalink || null,
+                username: media.username || null,
                 thumbnail_url: media.thumbnail_url,
                 timestamp: media.timestamp || null,
                 pageId: pageId,

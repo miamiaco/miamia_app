@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Creators {
+  id                                                       BigInt     @id @default(autoincrement())
+  created_at                                               DateTime   @default(now()) @db.Timestamptz(6)
+  name                                                     String?    @db.VarChar
+  email                                                    String?    @db.VarChar
+  fb_access_token                                          String?    @unique
+  access_token_expiration                                  DateTime?  @db.Timestamp(6)
+  fb_page_id                                               String?    @unique @db.VarChar
+  ig_business_account_url                                  String?    @unique
+  ig_business_account_id                                   String?    @unique @db.VarChar
+  ig_business_account_username                             String?    @unique @db.VarChar
+  IG_Media_IG_Media_ig_business_account_idToCreators       IG_Media[] @relation("IG_Media_ig_business_account_idToCreators")
+  IG_Media_IG_Media_ig_business_account_usernameToCreators IG_Media[] @relation("IG_Media_ig_business_account_usernameToCreators")
+  IG_Media_IG_Media_page_idToCreators                      IG_Media[] @relation("IG_Media_page_idToCreators")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model IG_Media {
+  id                                                       BigInt    @id @unique @default(autoincrement())
+  caption                                                  String?
+  media_url                                                String?
+  media_prodcut_type                                       String?   @db.VarChar
+  media_type                                               String?   @db.VarChar
+  permalink                                                String?
+  thumbnail_url                                            String?
+  timestamp                                                DateTime? @db.Timestamptz(6)
+  ig_business_account_id                                   String?   @db.VarChar
+  page_id                                                  String?   @db.VarChar
+  ig_business_account_username                             String?   @db.VarChar
+  Creators_IG_Media_ig_business_account_idToCreators       Creators? @relation("IG_Media_ig_business_account_idToCreators", fields: [ig_business_account_id], references: [ig_business_account_id], onDelete: NoAction, onUpdate: NoAction)
+  Creators_IG_Media_ig_business_account_usernameToCreators Creators? @relation("IG_Media_ig_business_account_usernameToCreators", fields: [ig_business_account_username], references: [ig_business_account_username], onDelete: NoAction, onUpdate: NoAction)
+  Creators_IG_Media_page_idToCreators                      Creators? @relation("IG_Media_page_idToCreators", fields: [page_id], references: [fb_page_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Scraped_Recipes {
+  id           BigInt   @id(map: "Recipes_pkey") @unique @default(autoincrement())
+  title        Json?    @db.Json
+  content      Json?    @db.Json
+  image_url    String?
+  original_url String?
+  owner        String?
+  Imported_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Users {
+  id         BigInt   @id @default(autoincrement())
+  name       String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+}
