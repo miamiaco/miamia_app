@@ -10,6 +10,7 @@ type Media = {
   media_product_type: string | null;
   media_type: string | null;
   permalink: string | null;
+  username: string;
   media_url: string | null;
   thumbnail_url: string | null;
   width?: number;
@@ -98,17 +99,12 @@ const MediaFeed: React.FC = () => {
   const renderItem = ({ item }: { item: Media }) => {
     if (!item.media_url || !item.width || !item.height) {
       console.warn('Invalid media item:', item);
-      console.log(item.width, item.media_product_type);
-      console.log(item.height, item.media_product_type);
       return null;
     }
-    console.log(item.width, item.media_product_type);
-    console.log(item.height, item.media_product_type);
 
     const aspectRatio = item.width / item.height;
     const containerWidth = (Dimensions.get('window').width / 2) - 16;
     const height = containerWidth / aspectRatio;
-    console.log(item.caption)
 
     return (
       <View style={styles.itemContainer}>
@@ -119,6 +115,9 @@ const MediaFeed: React.FC = () => {
         />
         {item.caption ? (
           <Text style={styles.caption}>{getFirstParagraph(item.caption)}</Text>
+        ) : null}
+        {item.username ? (
+          <Text style={styles.username}>{item.username}</Text>
         ) : null}
       </View>
     );
