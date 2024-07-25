@@ -50,7 +50,7 @@ const App: React.FC = () => {
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="FacebookLogin">
+        <Stack.Navigator initialRouteName="FeedScreen">
           <Stack.Screen 
             name="Feed" 
             component={FeedScreen} 
@@ -58,7 +58,7 @@ const App: React.FC = () => {
               header: () => <Header />
             }} 
           />
-          <Stack.Screen name="FacebookLogin" component={FacebookLoginScreen} />
+          <Stack.Screen name="FeedScreen" component={FeedScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </View>

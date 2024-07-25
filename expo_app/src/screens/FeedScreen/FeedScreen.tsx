@@ -3,6 +3,7 @@ import { View, Text, Dimensions, Image } from 'react-native';
 import MasonryList from '@react-native-seoul/masonry-list';
 import axios from 'axios';
 import styles from './FeedScreen.styles';
+//import { supabase } from '../../utils/supabase';
 
 type Media = {
   id: string;
@@ -10,14 +11,12 @@ type Media = {
   media_product_type: string | null;
   media_type: string | null;
   permalink: string | null;
-  username: string;
+  ig_business_account_username: string | null;
   media_url: string | null;
   thumbnail_url: string | null;
   width?: number;
   height?: number;
   timestamp: string | null;
-  pageId: string;
-  instagramBusinessAccountId: string | null;
 };
 
 const getFirstParagraph = (caption: string | null): string | null => {
@@ -43,8 +42,17 @@ const MediaFeed: React.FC = () => {
   const fetchMedia = async () => {
     try {
       const offset = (page - 1) * limit;
-      const response = await axios.get<Media[]>(`${API_URL}/media?limit=${limit}&offset=${offset}`);
+      const response = await axios.get<Media[]>(`${API_URL}/api/media?limit=${limit}&offset=${offset}`);
       const mediaData = response.data;
+      /*/ THIS IS FETCHING DIRECTLY THROUGH SUPABASE
+        const { data: mediaData, error } = await supabase
+        .from('IG_Media')
+        .select('*')
+        .range(offset, offset + limit - 1);
+
+      if (error) {
+        throw error;
+      }/*/
 
       const validMediaItems = mediaData.filter(media => media.media_url && media.id);
 
@@ -116,8 +124,8 @@ const MediaFeed: React.FC = () => {
         {item.caption ? (
           <Text style={styles.caption}>{getFirstParagraph(item.caption)}</Text>
         ) : null}
-        {item.username ? (
-          <Text style={styles.username}>{item.username}</Text>
+        {item.ig_business_account_username ? (
+          <Text style={styles.username}>{item.ig_business_account_username}</Text>
         ) : null}
       </View>
     );

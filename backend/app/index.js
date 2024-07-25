@@ -1,19 +1,16 @@
 const express = require('express');
-const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { PrismaClient } = require('@prisma/client');
 const morgan = require('morgan');
-
-
-const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error']
-});
 
 dotenv.config();
 
 const app = express();
+const mediaRouter = require('./routes/igMedia');
+const fbAutheticationRouter = require('./routes/fbAuthentication');
+const fbCallbackRouter = require('./routes/fbCallback');
+const fetchFacebookDataRouter = require('./routes/fetchFbData');
 
 app.use(bodyParser.json());
 app.use(morgan('dev'));
@@ -27,110 +24,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-const { APP_ID, APP_SECRET, REDIRECT_URI } = process.env;
+app.use('/api/media', mediaRouter);
 
-let longLivedToken = '';
+app.use('/auth/facebook', fbAutheticationRouter);
 
-app.get('/auth/facebook', (req, res) => {
-  const oauthUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=email,pages_show_list,instagram_basic,pages_read_engagement,business_management&display=page&extras={"setup":{"channel":"IG_API_ONBOARDING"}}`;
-  console.log('Generated OAuth URL:', oauthUrl);
-  res.json({ url: oauthUrl });
-});
+app.use('/auth/facebook/callback', fbCallbackRouter);
 
-app.get('/auth/facebook/callback', async (req, res) => {
-  const { code } = req.query;
-  const tokenUrl = `https://graph.facebook.com/v20.0/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${APP_SECRET}&code=${code}`;
+app.use('/fetch-facebook-data', fetchFacebookDataRouter);
 
-  try {
-    const tokenResponse = await axios.get(tokenUrl);
-    const shortLivedToken = tokenResponse.data.access_token;
-
-    const exchangeTokenResponse = await axios.get('https://graph.facebook.com/v20.0/oauth/access_token', {
-      params: {
-        grant_type: 'fb_exchange_token',
-        client_id: APP_ID,
-        client_secret: APP_SECRET,
-        fb_exchange_token: shortLivedToken,
-      },
-    });
-
-    longLivedToken = exchangeTokenResponse.data.access_token;
-    const expirationTime = exchangeTokenResponse.data.expires_in;
-
-    console.log('Generated long-lived token:', longLivedToken);
-    console.log('Token Expiration Time:', expirationTime);
-
-    res.redirect(`exp://?success=true`);
-  } catch (error) {
-    res.redirect(`exp://?success=false&error=${encodeURIComponent(error.message)}`);
-  }
-});
-
-app.get('/media', async (req, res) => {
-  const accessToken = longLivedToken;
-  const userUrl = `https://graph.facebook.com/v20.0/me/accounts?access_token=${accessToken}`;
-  const { limit = 20, offset = 0 } = req.query;
-
-  try {
-    const userResponse = await axios.get(userUrl);
-    const pages = userResponse.data.data;
-
-    if (pages.length > 0) {
-      let allMedia = [];
-
-      await Promise.all(pages.map(async (page) => {
-        const pageId = page.id;
-        const instagramBusinessAccountUrl = `https://graph.facebook.com/v20.0/${pageId}?fields=instagram_business_account&access_token=${accessToken}`;
-
-        try {
-          const instagramResponse = await axios.get(instagramBusinessAccountUrl);
-          const instagramBusinessAccountId = instagramResponse.data.instagram_business_account?.id;
-
-          if (instagramBusinessAccountId) {
-            const mediaUrl = `https://graph.facebook.com/v20.0/${instagramBusinessAccountId}/media?fields=caption,media_url,media_product_type,media_type,permalink,username,timestamp&access_token=${accessToken}&limit=${limit}&offset=${offset}`;
-            const mediaResponse = await axios.get(mediaUrl);
-            const mediaData = mediaResponse.data.data;
-
-            const mediaWithPageInfo = await Promise.all(mediaData.map(async (media) => {
-              if (media.media_type === 'VIDEO') {
-                const videoMediaUrl = `https://graph.facebook.com/v20.0/${media.id}?fields=thumbnail_url&access_token=${accessToken}`;
-                const videoMediaResponse = await axios.get(videoMediaUrl);
-                media.thumbnail_url = videoMediaResponse.data.thumbnail_url || null;
-              } else {
-                media.thumbnail_url = null;
-              }
-
-              return {
-                id: media.id,
-                caption: media.caption || null,
-                media_url: media.media_url || null, 
-                media_product_type: media.media_product_type || null,
-                media_type: media.media_type || null,
-                permalink: media.permalink || null,
-                username: media.username || null,
-                thumbnail_url: media.thumbnail_url,
-                timestamp: media.timestamp || null,
-                pageId: pageId,
-                instagramBusinessAccountId: instagramBusinessAccountId,
-              };
-            }));
-
-            allMedia = allMedia.concat(mediaWithPageInfo);
-          }
-        } catch (error) {
-          console.error(`Error fetching Instagram business account for Page ID ${pageId}:`, error);
-        }
-      }));
-
-      res.json(allMedia);
-    } else {
-      res.json({ message: 'No pages found' });
-    }
-  } catch (error) {
-    console.error('Error fetching User ID:', error);
-    res.status(500).json({ error: 'Failed to fetch User ID' });
-  }
-});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
