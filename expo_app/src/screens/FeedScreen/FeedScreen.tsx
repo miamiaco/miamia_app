@@ -3,7 +3,7 @@ import { View, Text, Dimensions, Image } from 'react-native';
 import MasonryList from '@react-native-seoul/masonry-list';
 import axios from 'axios';
 import styles from './FeedScreen.styles';
-//import { supabase } from '../../utils/supabase';
+import { supabase } from '../../utils/supabase';
 
 type Media = {
   id: string;
@@ -31,7 +31,7 @@ const MediaFeed: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const limit = 20;
+  const limit = 10;
 
   useEffect(() => {
     fetchMedia();
@@ -42,9 +42,9 @@ const MediaFeed: React.FC = () => {
   const fetchMedia = async () => {
     try {
       const offset = (page - 1) * limit;
-      const response = await axios.get<Media[]>(`${API_URL}/api/media?limit=${limit}&offset=${offset}`);
-      const mediaData = response.data;
-      /*/ THIS IS FETCHING DIRECTLY THROUGH SUPABASE
+      //const response = await axios.get<Media[]>(`${API_URL}/api/media?limit=${limit}&offset=${offset}`);
+      //const mediaData = response.data;
+      // THIS IS FETCHING DIRECTLY THROUGH SUPABASE
         const { data: mediaData, error } = await supabase
         .from('IG_Media')
         .select('*')
@@ -52,7 +52,7 @@ const MediaFeed: React.FC = () => {
 
       if (error) {
         throw error;
-      }/*/
+      }
 
       const validMediaItems = mediaData.filter(media => media.media_url && media.id);
 
