@@ -71,7 +71,7 @@ const App: React.FC = () => {
             options={{
               header: () => <Header />,
               tabBarIcon: ({ color, size }) => (
-                <MaterialCommunityIcons name="Search" />
+                <MaterialCommunityIcons name="magnify" />
               )
             }} 
           />
@@ -81,7 +81,7 @@ const App: React.FC = () => {
             options={{
               header: () => <Header />,
               tabBarIcon: ({ color, size }) => (
-                <MaterialCommunityIcons name="Profile" />
+                <MaterialCommunityIcons name="account" />
               )
             }} 
           />
