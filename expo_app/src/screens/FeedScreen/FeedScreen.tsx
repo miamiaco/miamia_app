@@ -29,7 +29,7 @@ const getFirstParagraph = (caption: string | null): string | null => {
 const MediaFeed: React.FC = () => {
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const limit = 10;
 
