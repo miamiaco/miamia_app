@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Dimensions, Image } from 'react-native';
+import { View, Text, Dimensions, Image as RNImage } from 'react-native';
 import MasonryList from '@react-native-seoul/masonry-list';
-import axios from 'axios';
-import styles from './FeedScreen.styles';
 import { supabase } from '../../utils/supabase';
+import styles from './FeedScreen.styles';
+import { Image as ExpoImage } from 'expo-image';
 
 type Media = {
   id: string;
@@ -11,19 +11,20 @@ type Media = {
   media_product_type: string | null;
   media_type: string | null;
   permalink: string | null;
+  image_url_m: string | null; 
+  image_url_l: string | null; 
   ig_business_account_username: string | null;
-  media_url: string | null;
   thumbnail_url: string | null;
   width?: number;
   height?: number;
   timestamp: string | null;
+  ig_media_id: string | null;
 };
 
 const getFirstParagraph = (caption: string | null): string | null => {
   if (!caption) return null;
   const paragraphs = caption.split('\n')[0];
   return paragraphs.charAt(0).toUpperCase() + paragraphs.slice(1).toLowerCase();
-
 };
 
 const MediaFeed: React.FC = () => {
@@ -32,81 +33,75 @@ const MediaFeed: React.FC = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const limit = 10;
+  const imageSizeCache: { [url: string]: { width: number, height: number } } = {};
 
   useEffect(() => {
-    fetchMedia();
+    fetchMedia(page);
+    console.log('page', page)
   }, [page]);
 
-  const API_URL = 'https://miamiaapp-ronjakovero-ronjakoveros-projects.vercel.app';
-
-  const fetchMedia = async () => {
+  const fetchMedia = async (page: number) => {
+    setLoading(true);
     try {
-      const offset = (page - 1) * limit;
-      //const response = await axios.get<Media[]>(`${API_URL}/api/media?limit=${limit}&offset=${offset}`);
-      //const mediaData = response.data;
-      // THIS IS FETCHING DIRECTLY THROUGH SUPABASE
-        const { data: mediaData, error } = await supabase
+      const offset = page * limit;
+      const { data: mediaData, error } = await supabase
         .from('IG_Media')
         .select('*')
         .range(offset, offset + limit - 1);
-
+      console.log('offset', offset)
+      console.log('supabase media data', mediaData)
       if (error) {
         throw error;
       }
 
-      const validMediaItems = mediaData.filter(media => media.media_url && media.id);
+      const validMediaItems = mediaData.filter(media => media.image_url_m && media.id);
+      console.log('Number of valid media items:', validMediaItems.length);
 
       const mediaItemsWithDimensions = await Promise.all(
         validMediaItems.map(async (media) => {
-          return new Promise<Media>((resolve) => {
-            if (media.media_product_type === "REELS" || media.media_type === "VIDEO") {
-              
-              Image.getSize(
-                media.thumbnail_url!,
-                (width, height) => {
-                  resolve({ ...media, width, height });
-  
-                },
-                (error) => {
-                  console.error('Error fetching video size:', error);
-                  resolve(media);
-                }
-              );
-            } else {
-              Image.getSize(
-                media.media_url!,
-                (width, height) => {
-                  resolve({ ...media, width, height });
-  
-                },
-                (error) => {
-                  console.error('Error fetching image size:', error);
-                  resolve(media);
-                }
-              );
-            }
-          });
+          try {
+            const { width, height } = await getImageSize(media.image_url_m!);
+            return { ...media, width, height };
+          } catch (error) {
+            //console.error('Error fetching image size:', error);
+            return { ...media, width: 100, height: 100 }; // default dimensions
+          }
         })
       );
 
       setMediaItems(prevItems => [...prevItems, ...mediaItemsWithDimensions]);
-      setHasMore(mediaItemsWithDimensions.length === limit);
-      setLoading(false);
+      setHasMore(validMediaItems.length === limit);
     } catch (error) {
-      console.error('Error fetching media:', error);
+      //console.error('Error fetching media:', error);
+    } finally {
       setLoading(false);
     }
+  };
+
+  const getImageSize = (url: string): Promise<{ width: number, height: number }> => {
+    return new Promise((resolve, reject) => {
+      if (imageSizeCache[url]) {
+        resolve(imageSizeCache[url]);
+      } else {
+        RNImage.getSize(
+          url,
+          (width, height) => {
+            imageSizeCache[url] = { width, height };
+            resolve({ width, height });
+          },
+          (error) => reject(error)
+        );
+      }
+    });
   };
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      setPage(prevPage => prevPage + 1);
-    }
+    if (loading || !hasMore) return;
+    setPage(prevPage => prevPage + 1);
   };
 
   const renderItem = ({ item }: { item: Media }) => {
-    if (!item.media_url || !item.width || !item.height) {
-      console.warn('Invalid media item:', item);
+    if (!item.image_url_m || !item.width || !item.height) {
       return null;
     }
 
@@ -116,10 +111,10 @@ const MediaFeed: React.FC = () => {
 
     return (
       <View style={styles.itemContainer}>
-        <Image
-          source={{ uri: item.media_url }}
+        <ExpoImage
+          source={{ uri: item.image_url_m }}
           style={[{ width: containerWidth, height }, styles.image]}
-          resizeMode="cover"
+          contentFit="cover"
         />
         {item.caption ? (
           <Text style={styles.caption}>{getFirstParagraph(item.caption)}</Text>
@@ -157,7 +152,7 @@ const MediaFeed: React.FC = () => {
         }}
         numColumns={2}
         data={mediaItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}

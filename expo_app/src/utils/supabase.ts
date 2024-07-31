@@ -6,9 +6,6 @@ import Constants from 'expo-constants';
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl;
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey;
 
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Anon Key:', supabaseAnonKey);
-
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase URL and anonymous key must be defined in app.config.ts');
 }
