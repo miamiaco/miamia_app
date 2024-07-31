@@ -1,0 +1,25 @@
+{
+  "cli": {
+    "version": ">= 10.2.2"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "SUPABASE_URL": "https://xaejkkdrpfpamdperwtq.supabase.co"
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "env": {
+        "SUPABASE_URL": "https://xaejkkdrpfpamdperwtq.supabase.co"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
