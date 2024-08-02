@@ -11,6 +11,7 @@ const mediaRouter = require('./routes/igMedia');
 const fbAutheticationRouter = require('./routes/fbAuthentication');
 const fbCallbackRouter = require('./routes/fbCallback');
 const fetchFacebookDataRouter = require('./routes/fetchFbData');
+const userRoutes = require('./routes/user');
 
 app.use(bodyParser.json());
 app.use(morgan('dev'));
@@ -31,6 +32,8 @@ app.use('/auth/facebook', fbAutheticationRouter);
 app.use('/auth/facebook/callback', fbCallbackRouter);
 
 app.use('/fetch-facebook-data', fetchFacebookDataRouter);
+
+app.use('/api/users', userRoutes);
 
 
 const PORT = process.env.PORT || 3000;
